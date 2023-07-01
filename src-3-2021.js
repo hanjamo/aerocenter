@@ -1,4 +1,8 @@
-			var vorArray = [
+//corrected rect12241_73 to rect12241_72
+//corrected vorMHZ_327 to vorMHZ_320
+//corrected path4990_TV to path4990_TKH
+
+var vorArray = [
 				"vorMHZ_MHZ",					
 				"vorMHZ_005",
 				"vorMHZ_049",
@@ -13,7 +17,7 @@
 				"vorMHZ_266",
 				"vorMHZ_281",
 				"vorMHZ_300",
-				"vorMHZ_327",
+				"vorMHZ_320",
 				"vorMHZ_335",
 				"vorMHZ_350",
 				"vorMLU_MLU",					
@@ -124,7 +128,7 @@
 				"rect12241_72",
 				"rect12243_75",
 				"rect12245_120",
-				"rect12247_73",
+				"rect12247_72",
 				"rect12249_70",
 				"rect12251_102",
 				"rect12253_60",
