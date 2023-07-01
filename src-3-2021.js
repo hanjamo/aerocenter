@@ -1,6 +1,9 @@
 //corrected rect12241_73 to rect12241_72
 //corrected vorMHZ_327 to vorMHZ_320
 //corrected path4990_TV to path4990_TKH
+//corrected deski_DESKE to deski_DESKE
+//corrected vorMHZ_233 to vorMHZ_223
+
 
 var vorArray = [
 				"vorMHZ_MHZ",					
@@ -12,7 +15,7 @@ var vorArray = [
 				"vorMHZ_164",
 				"vorMHZ_179",
 				"vorMHZ_194",
-				"vorMHZ_233",
+				"vorMHZ_223",
 				"vorMHZ_251",
 				"vorMHZ_266",
 				"vorMHZ_281",
@@ -51,7 +54,7 @@ var vorArray = [
 				"vorHEZ_026",
 				"vorHEZ_044",
 				"ubaby_UBABY",
-				"deski_DESKI",					
+				"deski_DESKE",					
 				"yazoo_YAZOO",
 				"kgwo_KGWO",
 				"hater_HATER",
