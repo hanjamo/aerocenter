@@ -177,8 +177,8 @@ var vorArray = [
 				"rect13181_23",
 				"rect13183_64",
 				"rect3763_42",
-				"rect3800_5000",
-				"rect14000_23"
+				"rect14000_23",
+				"rect3800_5000"
 			];
 			
 			var errorCount = 0;							
