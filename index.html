@@ -6,46 +6,59 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Random Degree Verifier</title>
     <style>
-        canvas {
-            border: 1px solid black;
-            display: block;
-            margin: 20px auto;
-            width: 80vmin;
-            height: 80vmin;
-        }
         body {
             text-align: center;
             font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
         }
-        button, input {
+
+        button,
+        input {
             margin: 5px;
             padding: 10px;
             font-size: 1rem;
         }
+
+        #controls {
+            position: absolute;
+            bottom: 10px;
+            width: 100%;
+            z-index: 1;
+        }
     </style>
 </head>
 
-<body>
+<body onload="initializeCanvas()">
     <canvas id="circleCanvas"></canvas>
-    <br>
-    <input type="number" id="degreeInput" placeholder="Guess the degree">
-    <button onclick="verifyDegree()">Verify</button>
-    <button onclick="generateDegree()">Generate Degree</button>
-    <br>
-    <button onclick="setTolerance(5)">Tolerance of 5</button>
-    <button onclick="setTolerance(10)">Tolerance of 10</button>
-    <button onclick="switchMode()">Switch Mode</button>
-    <button onclick="toggleDifficulty()">Switch Difficulty</button>
-    <p id="modeDisplay">Mode: Alpha</p>
-    <p id="difficultyDisplay">Difficulty: Normal</p>
-    <p id="result"></p>
+    <div id="controls">
+        <input type="number" id="degreeInput" placeholder="Guess the degree">
+        <button onclick="verifyDegree()">Verify</button>
+        <button onclick="generateDegree()">Generate Degree</button>
+        <br>
+        <button onclick="setTolerance(5)">Tolerance of 5</button>
+        <button onclick="setTolerance(10)">Tolerance of 10</button>
+        <button onclick="switchMode()">Switch Mode</button>
+        <button onclick="toggleDifficulty()">Switch Difficulty</button>
+        <p id="modeDisplay">Mode: Alpha</p>
+        <p id="difficultyDisplay">Difficulty: Normal</p>
+        <p id="result"></p>
+    </div>
 
     <script>
         let randomDegree = generateRandomDegree();
-        let tolerance = 5; // Default tolerance
+        let tolerance = 5;
         let mode = 'Alpha';
         let difficulty = 'Normal';
-        let circleRadius = 150; // Default circle radius for 'Normal' difficulty
+        let circleRadius = Math.min(window.innerWidth, window.innerHeight) / 2 - 50;
+
+        function initializeCanvas() {
+            const canvas = document.getElementById('circleCanvas');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight - 100;  // Subtracting a little to leave space for controls
+            generateDegree();
+        }
 
         function generateRandomDegree() {
             return Math.floor(Math.random() * 360);
@@ -56,6 +69,7 @@
         }
 
         function drawCenterDot() {
+            const canvas = document.getElementById('circleCanvas');
             const ctx = canvas.getContext('2d');
             ctx.beginPath();
             ctx.arc(canvas.width / 2, canvas.height / 2, 5, 0, 2 * Math.PI);
@@ -64,6 +78,7 @@
         }
 
         function drawDiamond(degree) {
+            const canvas = document.getElementById('circleCanvas');
             const ctx = canvas.getContext('2d');
             const centerX = canvas.width / 2;
             const centerY = canvas.height / 2;
@@ -98,6 +113,7 @@
 
         function generateDegree() {
             randomDegree = generateRandomDegree();
+            const canvas = document.getElementById('circleCanvas');
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.beginPath();
@@ -116,6 +132,7 @@
         }
 
         function drawDegree(degree, color) {
+            const canvas = document.getElementById('circleCanvas');
             const ctx = canvas.getContext('2d');
             const centerX = canvas.width / 2;
             const centerY = canvas.height / 2;
@@ -124,32 +141,37 @@
             ctx.beginPath();
             ctx.moveTo(centerX, centerY);
             ctx.lineTo(centerX + circleRadius * Math.cos(radian), centerY + circleRadius * Math.sin(radian));
-            ctx.strokeStyle = color || "black";
+            ctx.strokeStyle = color;
             ctx.stroke();
         }
 
         function verifyDegree() {
+            const guessedDegree = parseFloat(document.getElementById('degreeInput').value);
+            const canvas = document.getElementById('circleCanvas');
             const ctx = canvas.getContext('2d');
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2;
-            const guess = parseInt(document.getElementById('degreeInput').value);
 
-            let isWithinTolerance = Math.abs(guess - randomDegree) <= tolerance;
-
-            // Clear canvas and redraw the circle
+            // Clear the canvas and redraw
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.beginPath();
-            ctx.arc(centerX, centerY, circleRadius, 0, 2 * Math.PI);
+            ctx.arc(canvas.width / 2, canvas.height / 2, circleRadius, 0, 2 * Math.PI);
             ctx.stroke();
+            drawCenterDot();
 
+            // Draw the actual degree
             if (mode === 'Alpha') {
                 drawDiamond(randomDegree);
+            } else if (mode === 'Beta') {
+                drawDegree(randomDegree, 'black');
             }
 
-            drawDegree(randomDegree, 'black');
-            drawDegree(guess, isWithinTolerance ? 'green' : 'red');
-
-            document.getElementById('result').innerText = isWithinTolerance ? 'Correct!' : 'Incorrect!';
+            const diff = Math.abs(guessedDegree - randomDegree);
+            if (diff <= tolerance || diff >= (360 - tolerance)) {
+                drawDegree(guessedDegree, 'green');
+                document.getElementById('result').innerText = `Correct! The degree was ${randomDegree}. Your guess was ${guessedDegree}`;
+            } else {
+                drawDegree(guessedDegree, 'red');
+                document.getElementById('result').innerText = `Incorrect. The degree was ${randomDegree}. Your guess was ${guessedDegree}`;
+            }
         }
 
         generateDegree();
