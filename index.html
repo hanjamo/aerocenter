@@ -6,62 +6,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Random Degree Verifier</title>
     <style>
-        body {
-            text-align: center;
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-        }
-
-        button,
-        input {
-            margin: 5px;
-            padding: 10px;
-            font-size: 1rem;
-        }
-
-        #controls {
-            position: absolute;
-            bottom: 10px;
-            width: 100%;
-            z-index: 1;
+        canvas {
+            border: 1px solid black;
+            display: block;
+            margin: 20px auto;
         }
     </style>
 </head>
 
-<body onload="initializeCanvas()">
-    <canvas id="circleCanvas"></canvas>
-    <div id="controls">
-        <input type="number" id="degreeInput" placeholder="Guess the degree">
-        <button onclick="verifyDegree()">Verify</button>
-        <button onclick="generateDegree()">Generate Degree</button>
-        <br>
-        <button onclick="setTolerance(5)">Tolerance of 5</button>
-        <button onclick="setTolerance(10)">Tolerance of 10</button>
-        <button onclick="switchMode()">Switch Mode</button>
-        <button onclick="toggleDifficulty()">Switch Difficulty</button>
-        <p id="modeDisplay">Mode: Alpha</p>
-        <p id="difficultyDisplay">Difficulty: Normal</p>
-        <p id="result"></p>
-    </div>
+<body>
+    <canvas id="circleCanvas" width="800" height="800"></canvas>
+    <br>
+    <input type="number" id="degreeInput" placeholder="Guess the degree">
+    <button onclick="verifyDegree()">Verify</button>
+    <button onclick="generateDegree()">Generate Degree</button>
+    <br>
+    <button onclick="setTolerance(5)">Tolerance of 5</button>
+    <button onclick="setTolerance(10)">Tolerance of 10</button>
+    <button onclick="switchMode()">Switch Mode</button>
+    <button onclick="toggleDifficulty()">Switch Difficulty</button>
+    <p id="modeDisplay">Mode: Alpha</p>
+    <p id="difficultyDisplay">Difficulty: Normal</p>
+    <p id="result"></p>
 
     <script>
         let randomDegree = generateRandomDegree();
-        let tolerance = 5;
+        let tolerance = 5; // Default tolerance
         let mode = 'Alpha';
         let difficulty = 'Normal';
-        let circleRadius = Math.min(window.innerWidth, window.innerHeight) / 2 - 50;
-
-        function initializeCanvas() {
-            const canvas = document.getElementById('circleCanvas');
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight - 100;  // Subtracting a little to leave space for controls
-            generateDegree();
-        }
+        let circleRadius = 150; // Default circle radius
 
         function generateRandomDegree() {
             return Math.floor(Math.random() * 360);
+        }
+
+        function generateERAMDataBlock() {
+            const callsignPrefixes = ["A", "AAL", "DAL", "ENY", "SWA", "QXE", "UAL", "VV", "N"];
+            let callsignPrefix = callsignPrefixes[Math.floor(Math.random() * callsignPrefixes.length)];
+            let flightNumber = (callsignPrefix === "N") 
+                ? Math.floor(Math.random() * 100000).toString().padStart(5, '0')
+                : Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+            return `${callsignPrefix}${flightNumber}`;
+        }
+
+        function drawDataBlock(dataBlock, x, y) {
+            const canvas = document.getElementById('circleCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.font = "12px Arial";
+            ctx.fillStyle = "black";
+            ctx.fillText(dataBlock, x, y - 10);
         }
 
         function setTolerance(value) {
@@ -96,6 +89,10 @@
             ctx.closePath();
             ctx.fillStyle = "blue";
             ctx.fill();
+
+            // Display the data block near the diamond
+            let dataBlock = generateERAMDataBlock();
+            drawDataBlock(dataBlock, x + 15, y);
         }
 
         function switchMode() {
@@ -141,42 +138,54 @@
             ctx.beginPath();
             ctx.moveTo(centerX, centerY);
             ctx.lineTo(centerX + circleRadius * Math.cos(radian), centerY + circleRadius * Math.sin(radian));
-            ctx.strokeStyle = color;
+            ctx.strokeStyle = color || "black";
             ctx.stroke();
         }
 
         function verifyDegree() {
-            const guessedDegree = parseFloat(document.getElementById('degreeInput').value);
             const canvas = document.getElementById('circleCanvas');
             const ctx = canvas.getContext('2d');
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const guess = parseInt(document.getElementById('degreeInput').value);
 
-            // Clear the canvas and redraw
+            let isWithinTolerance = Math.abs(guess - randomDegree) <= tolerance;
+
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.beginPath();
-            ctx.arc(canvas.width / 2, canvas.height / 2, circleRadius, 0, 2 * Math.PI);
+            ctx.arc(centerX, centerY, circleRadius, 0, 2 * Math.PI);
             ctx.stroke();
             drawCenterDot();
 
-            // Draw the actual degree
+            let startRadian = (randomDegree - 90 - tolerance) * (Math.PI / 180);
+            let endRadian = (randomDegree - 90 + tolerance) * (Math.PI / 180);
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.arc(centerX, centerY, circleRadius, startRadian, endRadian);
+            ctx.fillStyle = 'rgba(200,200,200,0.5)';
+            ctx.fill();
+
+            drawDegree(randomDegree, 'black');
+
+            let guessedRadian = (guess - 90) * (Math.PI / 180);
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(centerX + circleRadius * Math.cos(guessedRadian), centerY + circleRadius * Math.sin(guessedRadian));
+            ctx.strokeStyle = isWithinTolerance ? 'green' : 'red';
+            ctx.stroke();
+
             if (mode === 'Alpha') {
                 drawDiamond(randomDegree);
-            } else if (mode === 'Beta') {
-                drawDegree(randomDegree, 'black');
             }
 
-            const diff = Math.abs(guessedDegree - randomDegree);
-            if (diff <= tolerance || diff >= (360 - tolerance)) {
-                drawDegree(guessedDegree, 'green');
-                document.getElementById('result').innerText = `Correct! The degree was ${randomDegree}. Your guess was ${guessedDegree}`;
+            if (isWithinTolerance) {
+                document.getElementById('result').innerText = "Correct!";
             } else {
-                drawDegree(guessedDegree, 'red');
-                document.getElementById('result').innerText = `Incorrect. The degree was ${randomDegree}. Your guess was ${guessedDegree}`;
+                document.getElementById('result').innerText = `Incorrect. The actual degree was ${randomDegree}`;
             }
         }
 
         generateDegree();
-
     </script>
 </body>
-
 </html>
